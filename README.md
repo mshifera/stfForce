@@ -30,10 +30,17 @@ library(stfForce)
 library(salesforcer)
 library(tidyverse)
 
+
 sf_store_creds(
-  username = "YOUR USERNAME GOES HERE", 
-  password = "YOUR PASSWORD GOES HERE", 
-  token = "YOUR TOKEN GOES HERE"
+  username = "jmienko@standtogether.org", 
+  password = "bigjose0095", 
+  token = "VMO9e9XrvvuedueFpj33BVvL"
+)
+
+sf_auth(
+  username = Sys.getenv('SF_USER'), 
+  password = Sys.getenv('SF_PASSWORD'), 
+  security_token = Sys.getenv('SF_TOKEN')
 )
 
 `%notin%` <- Negate(`%in%`)
@@ -76,4 +83,5 @@ evaluations <- get_concept_tibble(concept = 'Evaluation__c')
 referrals <- get_concept_tibble(concept = 'Referral__c')
 opportunities <- get_concept_tibble(concept = 'Opportunity') 
 assessments <- get_concept_tibble(concept = 'Assessment__c')
+
 ```
