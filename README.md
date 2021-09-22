@@ -4,7 +4,7 @@
 # stfForce
 
 The goal of `stfForce` is to provide a wrapper to the SalesForce API and
-the `salesforcer.` package.
+the `salesforcer` package.
 
 This package will be specifically geared toward users from the Stand
 Together Foundation, but may be generally useful to others.
