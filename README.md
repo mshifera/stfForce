@@ -3,24 +3,16 @@
 
 # stfForce
 
-<!-- badges: start -->
+The goal of `stfForce` is to provide a wrapper to the SalesForce API and
+the `salesforcer.` package.
 
-[![Travis build
-status](https://travis-ci.com/stand-together-foundation/stfForce.svg?branch=master)](https://travis-ci.com/stand-together-foundation/stfForce)
-<!-- badges: end -->
-
-The goal of stfForce is to …
+This package will be specifically geared toward users from the Stand
+Together Foundation, but may be generally useful to others.
 
 ## Installation
 
-You can install the released version of stfForce from
-[CRAN](https://CRAN.R-project.org) with:
-
-``` r
-install.packages("stfForce")
-```
-
-And the development version from [GitHub](https://github.com/) with:
+You can install the development version from
+[GitHub](https://github.com/) with:
 
 ``` r
 # install.packages("devtools")
@@ -29,36 +21,59 @@ devtools::install_github("stand-together-foundation/stfForce")
 
 ## Example
 
-This is a basic example which shows you how to solve a common problem:
+To get started working with `stfForce`, users should load the package
+along with the `tidyverse` package, and set their SalesForce
+credentials.
 
 ``` r
 library(stfForce)
-## basic example code
+library(salesforcer)
+library(tidyverse)
+
+sf_store_creds(
+  username = "YOUR USERNAME GOES HERE", 
+  password = "YOUR PASSWORD GOES HERE", 
+  token = "YOUR TOKEN GOES HERE"
+)
+
+`%notin%` <- Negate(`%in%`)
+
+get_concept_tibble <- function(concept = NULL) {
+  compound_fields <- sf_describe_object_fields(concept) %>% 
+    .$compoundFieldName %>%
+    unique() %>%
+    na.omit()
+  all_fields <- sf_describe_object_fields(concept) %>% 
+    .$name
+  get_fields <- all_fields[all_fields %notin% compound_fields]
+  get_fields_txt <- paste(get_fields, collapse=", ")
+  query_string <- paste0('SELECT ', get_fields_txt, ' FROM ', concept)
+  tib <- sf_query_bulk(soql = query_string, guess_types = FALSE)
+  return(tib)
+}
+
+dedup_concept_tibble <- function(tib = NULL, grouper = 'Organization__c') {
+  tib_full <- tib %>% 
+    mutate(
+      updated_at = lubridate::as_datetime(SystemModstamp)
+    )
+  
+  tib_current <- inner_join(
+    tib_full %>% 
+      group_by(across(starts_with(grouper))) %>% 
+      summarise(
+        latest_updated_at = max(updated_at)
+      ), 
+    tib_full, 
+    by = c(grouper, 'latest_updated_at' = 'updated_at')
+  )
+  
+  return(tib_current)
+}
+
+organizations <- get_concept_tibble(concept = 'Account')
+evaluations <- get_concept_tibble(concept = 'Evaluation__c')
+referrals <- get_concept_tibble(concept = 'Referral__c')
+opportunities <- get_concept_tibble(concept = 'Opportunity') 
+assessments <- get_concept_tibble(concept = 'Assessment__c')
 ```
-
-What is special about using `README.Rmd` instead of just `README.md`?
-You can include R chunks like so:
-
-``` r
-summary(cars)
-#>      speed           dist       
-#>  Min.   : 4.0   Min.   :  2.00  
-#>  1st Qu.:12.0   1st Qu.: 26.00  
-#>  Median :15.0   Median : 36.00  
-#>  Mean   :15.4   Mean   : 42.98  
-#>  3rd Qu.:19.0   3rd Qu.: 56.00  
-#>  Max.   :25.0   Max.   :120.00
-```
-
-You’ll still need to render `README.Rmd` regularly, to keep `README.md`
-up-to-date. `devtools::build_readme()` is handy for this. You could also
-use GitHub Actions to re-render `README.Rmd` every time you push. An
-example workflow can be found here:
-<https://github.com/r-lib/actions/tree/master/examples>.
-
-You can also embed plots, for example:
-
-<img src="man/figures/README-pressure-1.png" width="100%" />
-
-In that case, don’t forget to commit and push the resulting figure
-files, so they display on GitHub and CRAN.
