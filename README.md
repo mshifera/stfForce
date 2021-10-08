@@ -32,9 +32,9 @@ library(tidyverse)
 
 
 sf_store_creds(
-  username = "jmienko@standtogether.org", 
-  password = "bigjose0095", 
-  token = "VMO9e9XrvvuedueFpj33BVvL"
+  username = "j@standtogether.org", 
+  password = "", 
+  token = "saleforce"
 )
 
 sf_auth(
